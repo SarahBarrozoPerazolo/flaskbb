@@ -15,6 +15,7 @@ import sys
 from typing import Any
 
 from celery import __version__ as celery_version
+from celery.exceptions import CeleryError
 from flask import (
     Blueprint,
     Flask,
@@ -1140,7 +1141,7 @@ class CeleryStatus(MethodView):
         celery_inspect = celery.control.inspect()
         try:
             return bool(celery_inspect.ping())
-        except Exception:
+        except (CeleryError, OSError):
             # Brokers can expose different connection exception classes.
             return False
 
