@@ -1160,15 +1160,18 @@ class ManagementOverview(MethodView):
         )
     ]
 
+    @staticmethod
+    def _online_user_count():
+        if not current_app.config["REDIS_ENABLED"]:
+            return User.count(User.lastseen >= time_diff())
+        return len(get_online_users())
+
     def get(self):
         # user and group stats
         banned_users = User.count(
             clause=[Group.banned == True, Group.id == User.primary_group_id]
         )
-        if not current_app.config["REDIS_ENABLED"]:
-            online_users = User.count(User.lastseen >= time_diff())
-        else:
-            online_users = len(get_online_users())
+        online_users = self._online_user_count()
 
         unread_reports = Report.count(Report.zapped == None)
 
