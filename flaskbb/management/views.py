@@ -75,6 +75,13 @@ logger = logging.getLogger(__name__)
 PROTECTED_GROUP_ID = 6
 
 
+def _parse_ids(ids: list[Any]) -> list[int] | None:
+    try:
+        return [int(identifier) for identifier in ids]
+    except (ValueError, TypeError):
+        return None
+
+
 class ManagementSettings(MethodView):
     decorators = [
         allows.requires(
