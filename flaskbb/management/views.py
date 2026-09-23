@@ -715,9 +715,9 @@ class DeleteGroup(MethodView):
                 flash(
                     _(
                         "You cannot delete the standard groups. "
-                        "Try renaming it instead.",
-                        "danger",
-                    )
+                        "Try renaming it instead."
+                    ),
+                    "danger",
                 )
                 return redirect(url_for("management.groups"))
 
