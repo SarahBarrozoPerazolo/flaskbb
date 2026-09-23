@@ -23,7 +23,7 @@ def test_slugify():
     assert slugify("¿Cómo está?") == "como-esta"
 
 
-def test_forum_is_unread(guest, user, forum, topic, forumsread):
+def test_forum_is_unread(guest, user, forum, topic, forumsread, default_settings):
     """Test the forum is unread function."""
 
     # for a guest
@@ -64,7 +64,9 @@ def test_forum_is_unread(guest, user, forum, topic, forumsread):
     assert not forum_is_unread(forum, None, user)
 
 
-def test_topic_is_unread(guest, user, forum, topic, topicsread, forumsread):
+def test_topic_is_unread(
+    guest, user, forum, topic, topicsread, forumsread, default_settings
+):
     # test guest
     assert not topic_is_unread(None, None, guest)
 
