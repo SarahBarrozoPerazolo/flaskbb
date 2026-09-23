@@ -1135,17 +1135,17 @@ class CeleryStatus(MethodView):
         )
     ]
 
-    def get(self):
+    @staticmethod
+    def _is_celery_running():
         celery_inspect = celery.control.inspect()
         try:
-            celery_running = True if celery_inspect.ping() else False
+            return bool(celery_inspect.ping())
         except Exception:
-            # catching Exception is bad, and just catching ConnectionError
-            # from redis is also bad because you can run celery with other
-            # brokers as well.
-            celery_running = False
+            # Brokers can expose different connection exception classes.
+            return False
 
-        return jsonify(celery_running=celery_running, status=200)
+    def get(self):
+        return jsonify(celery_running=self._is_celery_running(), status=200)
 
 
 class ManagementOverview(MethodView):
