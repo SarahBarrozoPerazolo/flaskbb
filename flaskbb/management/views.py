@@ -78,6 +78,11 @@ NON_MEMBER_GROUP_FLAGS = ("admin", "mod", "super_mod", "banned", "guest")
 
 
 def _parse_ids(ids: list[Any]) -> list[int] | None:
+    """Convert IDs received from a bulk-action request to integers.
+
+    Returns ``None`` when any value cannot be converted, allowing callers to
+    keep the endpoint's validation response separate from its delete logic.
+    """
     try:
         return [int(identifier) for identifier in ids]
     except (ValueError, TypeError):
@@ -231,6 +236,7 @@ class EditUser(MethodView):
     form = EditUserForm
 
     def _editable_group_query(self):
+        """Build the groups visible to the current user's edit permissions."""
         member_group = db.and_(
             *[
                 db.not_(getattr(Group, permission))
@@ -1138,6 +1144,7 @@ class CeleryStatus(MethodView):
 
     @staticmethod
     def _is_celery_running():
+        """Return whether the broker responds without exposing broker errors."""
         celery_inspect = celery.control.inspect()
         try:
             return bool(celery_inspect.ping())
