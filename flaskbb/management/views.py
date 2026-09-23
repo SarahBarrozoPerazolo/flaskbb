@@ -662,15 +662,14 @@ class DeleteGroup(MethodView):
     ]
 
     def post(self, group_id: int | None = None):
-        json = request.get_json(silent=True)
-        if json is not None:
-            ids: list[Any] = json.get("ids", [])
+        request_payload = request.get_json(silent=True)
+        if request_payload is not None:
+            ids: list[Any] = request_payload.get("ids", [])
             if not ids:
                 return jsonify(message="No ids provided.", category="error", status=404)
 
-            try:
-                id_list = [int(id) for id in ids]
-            except (ValueError, TypeError):
+            id_list = _parse_ids(ids)
+            if id_list is None:
                 return jsonify(
                     message="No valid ids provided.", category="error", status=404
                 )
