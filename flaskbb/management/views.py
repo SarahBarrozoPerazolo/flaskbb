@@ -221,28 +221,32 @@ class EditUser(MethodView):
     ]
     form = EditUserForm
 
+    def _editable_group_query(self):
+        member_group = db.and_(
+            *[
+                db.not_(getattr(Group, permission))
+                for permission in ["admin", "mod", "super_mod", "banned", "guest"]
+            ]
+        )
+        group_filter = db.or_(
+            Group.id.in_(group.id for group in current_user.groups), member_group
+        )
+
+        if Permission(IsAtleastSuperModerator, identity=current_user):
+            group_filter = db.or_(group_filter, Group.mod)
+
+        if Permission(IsAdmin, identity=current_user):
+            group_filter = db.or_(group_filter, Group.admin, Group.super_mod)
+
+        if Permission(CanBanUser, identity=current_user):
+            group_filter = db.or_(group_filter, Group.banned)
+
+        return Group.query.filter(group_filter)
+
     def get(self, user_id: int):
         user = User.get_by_or_404(id=user_id)
         form = self.form(user)
-        member_group = db.and_(
-            *[
-                db.not_(getattr(Group, p))
-                for p in ["admin", "mod", "super_mod", "banned", "guest"]
-            ]
-        )
-
-        filt = db.or_(Group.id.in_(g.id for g in current_user.groups), member_group)
-
-        if Permission(IsAtleastSuperModerator, identity=current_user):
-            filt = db.or_(filt, Group.mod)
-
-        if Permission(IsAdmin, identity=current_user):
-            filt = db.or_(filt, Group.admin, Group.super_mod)
-
-        if Permission(CanBanUser, identity=current_user):
-            filt = db.or_(filt, Group.banned)
-
-        group_query = Group.query.filter(filt)
+        group_query = self._editable_group_query()
 
         form.primary_group.query = group_query
         form.secondary_groups.query = group_query
@@ -253,26 +257,7 @@ class EditUser(MethodView):
 
     def post(self, user_id: int):
         user = User.get_by_or_404(id=user_id)
-
-        member_group = db.and_(
-            *[
-                db.not_(getattr(Group, p))
-                for p in ["admin", "mod", "super_mod", "banned", "guest"]
-            ]
-        )
-
-        filt = db.or_(Group.id.in_(g.id for g in current_user.groups), member_group)
-
-        if Permission(IsAtleastSuperModerator, identity=current_user):
-            filt = db.or_(filt, Group.mod)
-
-        if Permission(IsAdmin, identity=current_user):
-            filt = db.or_(filt, Group.admin, Group.super_mod)
-
-        if Permission(CanBanUser, identity=current_user):
-            filt = db.or_(filt, Group.banned)
-
-        group_query = Group.query.filter(filt)
+        group_query = self._editable_group_query()
 
         form = EditUserForm(user)
         form.primary_group.query = group_query
