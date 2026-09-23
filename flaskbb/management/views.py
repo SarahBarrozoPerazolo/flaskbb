@@ -73,6 +73,7 @@ impl = HookimplMarker("flaskbb")
 logger = logging.getLogger(__name__)
 
 PROTECTED_GROUP_ID = 6
+NON_MEMBER_GROUP_FLAGS = ("admin", "mod", "super_mod", "banned", "guest")
 
 
 def _parse_ids(ids: list[Any]) -> list[int] | None:
@@ -232,7 +233,7 @@ class EditUser(MethodView):
         member_group = db.and_(
             *[
                 db.not_(getattr(Group, permission))
-                for permission in ["admin", "mod", "super_mod", "banned", "guest"]
+                for permission in NON_MEMBER_GROUP_FLAGS
             ]
         )
         group_filter = db.or_(
